@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class UsersController extends Controller
 {
@@ -17,14 +18,15 @@ class UsersController extends Controller
         
         //VALIDAR LOS DATOS
 
-        $usuario = new Usuario();
-        $usuario->nombre = $datos->nombre;
-        $usuario->foto = $datos->foto;
+        $usuario = new User();
+        $usuario->name = $datos->name;
+        $usuario->salario = $datos->salario;
         $usuario->email = $datos->email;
-        $usuario->contraseña = $datos->contraseña;
-        $usuario->activado = $datos->activado = 1;
+        $usuario->password = $datos->password;
+        $usuario->biografia = $datos->biografia;
+        $usuario->puesto = $datos->puesto;
 
-
+    
         //Escribir en la base de datos
         try{
             $usuario->save();
@@ -40,5 +42,23 @@ class UsersController extends Controller
     
         
 
+    }
+
+    public function listar(){
+
+
+        $respuesta = ["status" => 1,"msg"=> "" ];
+        try{
+            $usuarios = User::all();
+            $respuesta['datos'] = $usuarios;
+
+        }catch(\Exception $e){
+            $respuesta['status'] = 0;
+            $respuesta['msg'] = "Se ha producido un error: ".$e->getMessage();
+            
+        }
+
+        
+        return response() ->json($respuesta);
     }
 }
