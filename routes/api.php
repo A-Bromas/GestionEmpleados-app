@@ -21,6 +21,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 Route::prefix('users')->group(function(){
-    Route::put('/crear',[UsersController::class,'crear']);
+   // Route::put('/crear',[UsersController::class,'crear']);
     Route::get('/listar',[UsersController::class,'listar']); 
+    Route::post('/login',[UsersController::class,'login']); 
  });
+ Route::middleware(['login-con-token','permission'])->prefix('users')->group(function(){
+    Route::put('/crear',[UsersController::class,'crear']);
+});
