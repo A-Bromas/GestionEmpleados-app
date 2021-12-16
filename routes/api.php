@@ -24,7 +24,9 @@ Route::prefix('users')->group(function(){
    // Route::put('/crear',[UsersController::class,'crear']);
     Route::get('/listar',[UsersController::class,'listar']); 
     Route::post('/login',[UsersController::class,'login']); 
+    Route::get('/recuperarPassword',[UsersController::class, 'recuperarPassword']);
  });
  Route::middleware(['login-con-token','permission'])->prefix('users')->group(function(){
     Route::put('/crear',[UsersController::class,'crear']);
-});
+    Route::get('/ver',[UsersController::class, 'ver']);
+});Route::get('/listaEmpleados',[UsersController::class, 'listaEmpleados']);
