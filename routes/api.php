@@ -29,4 +29,5 @@ Route::prefix('users')->group(function(){
  Route::middleware(['login-con-token','permission'])->prefix('users')->group(function(){
     Route::put('/crear',[UsersController::class,'crear']);
     Route::get('/ver',[UsersController::class, 'ver']);
-});Route::get('/listaEmpleados',[UsersController::class, 'listaEmpleados']);
+    Route::get('/listaEmpleados',[UsersController::class, 'listaEmpleados']);
+});

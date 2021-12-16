@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\passwordEmail;
+use Illuminate\Support\Facades\DB;
 class UsersController extends Controller
 {
     public function crear(Request $req){
@@ -16,11 +17,11 @@ class UsersController extends Controller
         $validator = Validator::make(json_decode($req->
         getContent(),true), [
             "name" => 'required|max:50',
+            "salario" => 'required|numeric',
             "email" => 'required|email|unique:App\Models\User,email|max:30',
             "password" => 'required|regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}/',
-            "puesto" => 'required|in:Direccion,RRHH,Empleado',
-            "salario" => 'required|numeric',
-            "biografia" => 'required|max:100'
+            "biografia" => 'required|max:100',
+            "puesto" => 'required|in:Direccion,RRHH,Empleado'
         ]);
 
         if($validator -> fails()){
@@ -33,15 +34,15 @@ class UsersController extends Controller
     
             $usuario = new User();
             $usuario -> name = $datos -> name;
+            $usuario -> salario = $datos -> salario;
             $usuario -> email = $datos -> email;
             $usuario -> password = Hash::make($datos->password);
-            $usuario -> puesto = $datos -> puesto;
-            $usuario -> salario = $datos -> salario;
             $usuario -> biografia = $datos -> biografia;
+            $usuario -> puesto = $datos -> puesto;
 
             try {
                 $usuario->save();
-                $respuesta["msg"] = "Usuario Guardado";
+                $respuesta["msg"] = "Usuario guardado con id ".$usuario->id;
             }catch (\Exception $e) {
                 $respuesta["status"] = 0;
                 $respuesta["msg"] = "Se ha producido un error".$e->getMessage();  
@@ -162,20 +163,21 @@ class UsersController extends Controller
     public function listaEmpleados(Request $req){
 
         $respuesta = ["status" => 1, "msg" => ""];
+        
 
-        if ($req->user->puesto == 'Direccion'){
+        if ($req->usuario->puesto == 'Direccion'){
 
-            $Users = User::whereIn('users.puesto_trabajo', ['Empleado', 'RRHH'])
-                ->select('users.id','users.nombre','users.puesto_trabajo','users.salario')
+            $empleados = User::whereIn('users.puesto', ['Empleado', 'RRHH'])
+                ->select('users.id','users.nombre','users.puesto','users.salario')
                 ->get(); 
-           $respuesta['listaeEmpleados'] = $Users;
+           $respuesta['listaempleados'] = $empleados;
 
-        } elseif ($req->user->puesto == 'RRHH'){
+        } elseif ($req->users->puesto == 'RRHH'){
 
-            $Users = User::where('users.puesto_trabajo', 'Empleado')
-                ->select('users.id','users.nombre','users.puesto_trabajo','users.salario')
+            $empleados = User::where('users.puesto', 'Empleado')
+                ->select('users.id','users.nombre','users.puesto','users.salario')
                 ->get(); 
-            $respuesta['listaEmpleados'] = $Users;
+            $respuesta['listaempleados'] = $empleados;
 
         } else {
             $respuesta["status"] = 0;
