@@ -17,7 +17,7 @@ class UsersController extends Controller
         getContent(),true), [
             "name" => 'required|max:50',
             "salario" => 'required|numeric',
-            "email" => 'required|email|unique:App\Models\User,email|max:30',
+            "email" => 'required|email|unique:App\Models\User,email|max:50',
             "password" => 'required|regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}/',
             "biografia" => 'required|max:100',
             "puesto" => 'required|in:Direccion,RRHH,Empleado'
