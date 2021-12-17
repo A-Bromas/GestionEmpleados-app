@@ -23,7 +23,7 @@ class VerifyToken
         $user = User::where('api_token',$apitoken)->first();
 
         if(!$user){
-            die("El token ha sido mal introducido");
+            die("El token que se ha introducido no es el correcto");
         }else{
             $request->user = $user;
             return $next($request);

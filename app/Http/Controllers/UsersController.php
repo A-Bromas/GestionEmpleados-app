@@ -75,7 +75,7 @@ class UsersController extends Controller
 
         if($usuario){
             $usuario -> makevisible( 'password');
-            $respuesta['datos_perfil'] = $usuario;
+            $respuesta['perfil'] = $usuario;
         } else {
             $respuesta["status"] = 0;
             $respuesta["msg"] = "Se ha producido un error";  
@@ -115,7 +115,57 @@ class UsersController extends Controller
 
         return response()->json($respuesta);  
     }
+    public function detalle(Request $req, $id){
 
+        $respuesta = ["status" => 1, "msg" => ""];
+        $usuario = User::find($id);
+        $bool = false;
+
+        if($usuario){
+
+            if ($usuario->puesto == 'Direccion'){
+
+                if($usuario -> puesto != "Direccion")
+                    $bool = true;
+    
+                    if($bool) {
+                        $trabajador = User::whereIn('users.puesto', ['Empleado', 'RRHH'])
+                            ->where('users.id',$usuario->id)
+                            ->select('users.id','users.name','users.puesto','users.salario')
+                            ->first(); 
+                        $respuesta['detalle'] = $trabajador;
+                    } else  {
+                        $respuesta["status"] = 0;
+                        $respuesta["msg"] = "No puedes ver los datos de directivos";
+                    }
+
+            } elseif ($request->usuario->puesto_trabajo == 'RRHH'){
+
+                if($usuario -> puesto != "Direccion" && $usuario -> puesto != "RRHH")
+                    $bool = true;   
+        
+                    if($bool) {
+                        $trabajador = User::where('users.puesto', 'Empleado')
+                            ->where('users.id',$usuario->id)
+                            ->select('users.id','users.name','users.puesto','users.salario')
+                            ->first();
+                        $respuesta['detalle'] = $trabajador;
+                    } else {
+                        $respuesta["status"] = 0;
+                        $respuesta["msg"] = "No puedes ver los datos de directivos o de RRHH";
+                    }
+
+            } else {
+                $respuesta["status"] = 0;
+                $respuesta["msg"] = "Se ha producido un error";
+            }
+        } else {
+            $respuesta["status"] = 0;
+            $respuesta["msg"] = "Usuario no encontrado";
+        }
+
+        return response()->json($respuesta);
+    }
     public function recuperarPassword(Request $req){
 
         //Obtenemos el email
@@ -163,27 +213,29 @@ class UsersController extends Controller
     public function listaEmpleados(Request $req){
 
         $respuesta = ["status" => 1, "msg" => ""];
-        
+        $usuario = User::where('api_token', '=', $req->api_token)->first();
+        if($usuario){
+            if ($usuario->puesto == 'Direccion'){
 
-        if ($req->usuario->puesto == 'Direccion'){
-
-            $empleados = User::whereIn('users.puesto', ['Empleado', 'RRHH'])
-                ->select('users.id','users.nombre','users.puesto','users.salario')
-                ->get(); 
-           $respuesta['listaempleados'] = $empleados;
-
-        } elseif ($req->users->puesto == 'RRHH'){
-
-            $empleados = User::where('users.puesto', 'Empleado')
-                ->select('users.id','users.nombre','users.puesto','users.salario')
-                ->get(); 
+                $empleados = User::whereIn('users.puesto', ['Empleado', 'RRHH'])
+                    ->select('users.id','users.name','users.puesto','users.salario')
+                    ->get(); 
             $respuesta['listaempleados'] = $empleados;
 
-        } else {
-            $respuesta["status"] = 0;
-            $respuesta["msg"] = "Se ha producido un error";
-        }
+            } elseif ($usuario->puesto == 'RRHH'){
 
+                $empleados = User::where('users.puesto', 'Empleado')
+                    ->select('users.id','users.name','users.puesto','users.salario')
+                    ->get(); 
+                $respuesta['listaempleados'] = $empleados;
+
+            } else {
+                $respuesta["status"] = 0;
+                $respuesta["msg"] = "Se ha producido un error";
+            }
+        }else{
+            $respuesta["msg"] = "Usuario no encontrado";
+        }
         return response()->json($respuesta);
     }
 
