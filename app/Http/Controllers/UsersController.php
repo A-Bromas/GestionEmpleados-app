@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\passwordEmail;
-use Illuminate\Support\Facades\DB;
 class UsersController extends Controller
 {
     public function crear(Request $req){
@@ -118,50 +117,44 @@ class UsersController extends Controller
     public function detalle(Request $req, $id){
 
         $respuesta = ["status" => 1, "msg" => ""];
-        $usuario = User::find($id);
-        $bool = false;
-
-        if($usuario){
-
-            if ($usuario->puesto == 'Direccion'){
-
-                if($usuario -> puesto != "Direccion")
-                    $bool = true;
-    
-                    if($bool) {
-                        $trabajador = User::whereIn('users.puesto', ['Empleado', 'RRHH'])
-                            ->where('users.id',$usuario->id)
-                            ->select('users.id','users.name','users.puesto','users.salario')
-                            ->first(); 
-                        $respuesta['detalle'] = $trabajador;
-                    } else  {
-                        $respuesta["status"] = 0;
-                        $respuesta["msg"] = "No puedes ver los datos de directivos";
-                    }
-
-            } elseif ($request->usuario->puesto_trabajo == 'RRHH'){
-
-                if($usuario -> puesto != "Direccion" && $usuario -> puesto != "RRHH")
-                    $bool = true;   
+        $empleado = User::find($id);
         
-                    if($bool) {
-                        $trabajador = User::where('users.puesto', 'Empleado')
-                            ->where('users.id',$usuario->id)
-                            ->select('users.id','users.name','users.puesto','users.salario')
-                            ->first();
-                        $respuesta['detalle'] = $trabajador;
-                    } else {
-                        $respuesta["status"] = 0;
-                        $respuesta["msg"] = "No puedes ver los datos de directivos o de RRHH";
-                    }
+
+        if($empleado){
+            $usuario = User::where('api_token', '=', $req->api_token)->first();
+            if ($usuario->puesto == 'Direccion'){
+                if ($usuario->puesto == 'Direccion'){
+                    $empleados = User::whereIn('users.puesto', ['Empleado', 'RRHH'])
+                        ->select('users.name','users.email','users.biografia','users.puesto','users.salario')
+                        ->where('users.id', '=', $id)
+                        ->get(); 
+                    $respuesta['detalle'] = $empleados;
+                }else  {
+                    $respuesta["status"] = 0;
+                    $respuesta["msg"] = "No puedes ver los datos de Direccion";
+                }
+
+            } elseif ($usuario->puesto == 'RRHH'){
+
+                if($usuario -> puesto = "RRHH"){
+                    $empleados = User::where('users.puesto', 'Empleado')
+                    ->select('users.name','users.email','users.biografia','users.puesto','users.salario')
+                    ->where('users.id', '=', $id)
+                    ->get(); 
+                    $respuesta['detalle'] = $empleados;
+                }else  {
+                    $respuesta["status"] = 0;
+                    $respuesta["msg"] = "No puedes ver los datos de RRHH";
+                }
 
             } else {
                 $respuesta["status"] = 0;
                 $respuesta["msg"] = "Se ha producido un error";
             }
+
         } else {
             $respuesta["status"] = 0;
-            $respuesta["msg"] = "Usuario no encontrado";
+            $respuesta["msg"] = "El usuario no ha sido encontrado";
         }
 
         return response()->json($respuesta);
@@ -174,13 +167,12 @@ class UsersController extends Controller
 
         //Buscar el email
         $email = $datos->email;
-
+        $respuesta = ["status" => 1, "msg" => ""];
         //Validacion
         $user = User::where('email',$email)->first();
         try{
             if($user){
 
-                $user = User::where('email',$email)->first();
 
                 $user->api_token = null;
                 
@@ -198,7 +190,7 @@ class UsersController extends Controller
                 
             }else{
                 
-                $respuesta['msg'] = "Usuario no registrado";
+                $respuesta['msg'] = "Ese usuario no esta registrado";
             }
             
         }catch(\Exception $e){
@@ -207,8 +199,6 @@ class UsersController extends Controller
         }
 
         return response()->json($respuesta);
-
-
     }
     public function listaEmpleados(Request $req){
 
@@ -234,7 +224,7 @@ class UsersController extends Controller
                 $respuesta["msg"] = "Se ha producido un error";
             }
         }else{
-            $respuesta["msg"] = "Usuario no encontrado";
+            $respuesta["msg"] = "El usuario no ha sido encontrado";
         }
         return response()->json($respuesta);
     }
