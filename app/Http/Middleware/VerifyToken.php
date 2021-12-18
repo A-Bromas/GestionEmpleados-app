@@ -17,15 +17,24 @@ class VerifyToken
      */
     public function handle(Request $request, Closure $next)
     {
+        $respuesta = ["status" => 1, "msg" => ""];
+        if(isset($request->api_token)){
+            $apitoken = $request->api_token;
+            if($user = User::where('api_token',$apitoken)->first()){
+                $user = User::where('api_token',$apitoken)->first();
+                $respuesta["msg"] = "Api token valido";
+                $request->user = $user;
+                return $next($request);
+            }else{
+                $respuesta["msg"] = "El token que se ha introducido no es el correcto";
+            }
 
-        $apitoken = $request->api_token;
-
-        $user = User::where('api_token',$apitoken)->first();
-
-        if(!$user){
-            die("El token que se ha introducido no es el correcto");
         }else{
-            $request->user = $user;
-            return $next($request);
-        }    }
+            $respuesta["status"] = 0;
+            $respuesta["msg"] = "El api token no ha sido ingresado";
+        }
+
+        return response()->json($respuesta);
+        
+     }
 }
