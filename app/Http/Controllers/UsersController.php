@@ -41,7 +41,7 @@ class UsersController extends Controller
 
             try {
                 $usuario->save();
-                $respuesta["msg"] = "Usuario guardado con id ".$usuario->id;
+                $respuesta["msg"] = "Usuario creado";
             }catch (\Exception $e) {
                 $respuesta["status"] = 0;
                 $respuesta["msg"] = "Se ha producido un error".$e->getMessage();  
@@ -100,7 +100,7 @@ class UsersController extends Controller
 
                 $usuario -> api_token = $token;
                 $usuario -> save();
-                $respuesta["msg"] = "Login correcto, tu api token es: ".$usuario -> api_token;  
+                $respuesta["msg"] = "Login correcto";  
 
             } else {
                 $respuesta["status"] = 0;
