@@ -100,7 +100,7 @@ class UsersController extends Controller
 
                 $usuario -> api_token = $token;
                 $usuario -> save();
-                $respuesta["msg"] = "Login correcto";  
+                $respuesta["msg"] = $token;  
 
             } else {
                 $respuesta["status"] = 0;
@@ -186,7 +186,7 @@ class UsersController extends Controller
                 $user->password = Hash::make($newPassword);
                 $user->save();
                 Mail::to($user->email)->send(new passwordEmail($newPassword));  
-                //$respuesta['msg'] = "La nueva contraseña es ".$newPassword;
+                $respuesta['msg'] = "Se ha enviado su nueva contraseña".$newPassword;
                 
             }else{
                 
