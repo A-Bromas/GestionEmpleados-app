@@ -19,7 +19,7 @@ class UsersController extends Controller
             "salario" => 'required|numeric',
             "email" => 'required|email|unique:App\Models\User,email|max:50',
             "password" => 'required|regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}/',
-            "biografia" => 'required|max:100',
+            "biografia" => 'required|max:400',
             "puesto" => 'required|in:Direccion,RRHH,Empleado'
         ]);
 
@@ -41,6 +41,7 @@ class UsersController extends Controller
 
             try {
                 $usuario->save();
+                $respuesta["status"] = 1;
                 $respuesta["msg"] = "Usuario creado";
             }catch (\Exception $e) {
                 $respuesta["status"] = 0;
@@ -100,15 +101,23 @@ class UsersController extends Controller
 
                 $usuario -> api_token = $token;
                 $usuario -> save();
+                $usuarios = User::where('api_token', '=', $token)->first();
+                $perfil = User::where('users.id', '=', $usuarios->id)
+                    ->select('users.puesto')
+                    ->get(); 
+
+                    
+                $respuesta['listaempleados'] = $perfil;
+                $respuesta["status"] = 1;
                 $respuesta["msg"] = $token;  
 
             } else {
-                $respuesta["status"] = 0;
+                $respuesta["status"] = 401;
                 $respuesta["msg"] = "La contraseña no es correcta";  
             }
 
         } else {
-            $respuesta["status"] = 0;
+            $respuesta["status"] = 401;
             $respuesta["msg"] = "Usuario no encontrado";  
         }
 
@@ -186,7 +195,7 @@ class UsersController extends Controller
                 $user->password = Hash::make($newPassword);
                 $user->save();
                 Mail::to($user->email)->send(new passwordEmail($newPassword));  
-                $respuesta['msg'] = "Se ha enviado su nueva contraseña".$newPassword;
+                $respuesta['msg'] = "Se ha enviado su nueva contraseña";
                 
             }else{
                 
@@ -208,14 +217,14 @@ class UsersController extends Controller
             if ($usuario->puesto == 'Direccion'){
 
                 $empleados = User::whereIn('users.puesto', ['Empleado', 'RRHH'])
-                    ->select('users.id','users.name','users.puesto','users.salario')
+                    ->select('users.name','users.puesto','users.biografia','users.salario')
                     ->get(); 
             $respuesta['listaempleados'] = $empleados;
 
             } elseif ($usuario->puesto == 'RRHH'){
 
                 $empleados = User::where('users.puesto', 'Empleado')
-                    ->select('users.id','users.name','users.puesto','users.salario')
+                    ->select('users.name','users.biografia','users.puesto','users.salario')
                     ->get(); 
                 $respuesta['listaempleados'] = $empleados;
 
@@ -228,5 +237,29 @@ class UsersController extends Controller
         }
         return response()->json($respuesta);
     }
+    function profile(Request $req)
+    {
+
+        $respuesta = ["status" => 1, "msg" => ""];
+
+        // $data = $req->getContent();
+        // $data = json_decode($data);
+
+        try {
+            $usuario = User::where('api_token', '=', $req->api_token)->first();
+            $perfil = User::where('users.id', '=', $usuario->id)
+                    ->select('users.name','users.email','users.biografia','users.puesto','users.salario')
+                    ->get(); 
+
+                    $respuesta['listaempleados'] = $perfil;
+
+            
+        } catch (\Exception $e) {
+            $respuesta['status'] = 0;
+            $respuesta['msg'] = "Se ha producido un error: " . $e->getMessage();
+        }
+        return response()->json($respuesta);
+    }
+
 
 }
